@@ -20,6 +20,7 @@ set (commands_SRCS CmdCancel.cpp
                    CmdHelp.cpp
                    CmdJoin.cpp
                    CmdLengthen.cpp
+                   CmdModify.cpp
                    CmdMove.cpp
                    CmdReport.cpp
                    CmdResize.cpp
