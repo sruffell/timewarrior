@@ -40,6 +40,9 @@ int CmdModify (
   std::vector <std::string> words = cli.getWords ();
   enum { MODIFY_START, MODIFY_STOP } op {MODIFY_START};
 
+  if (words.empty())
+    throw std::string("Must specify start|stop command to modify. See 'timew help modify'.");
+
   if (words.at(0) == "start")
     op = MODIFY_START;
   else if (words.at(0) == "stop")
