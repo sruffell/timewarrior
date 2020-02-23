@@ -42,11 +42,18 @@ public:
 
   class iterator
   {
+  public:
+    using difference_type    = ssize_t;
+    using value_type         = std::string;
+    using pointer            = value_type*;
+    using reference          = value_type&;
+    using iterator_category  = std::forward_iterator_tag;
+
   private:
     friend class Database;
+
     typedef std::vector <Datafile>::reverse_iterator files_iterator;
     typedef std::vector <std::string>::const_reverse_iterator lines_iterator;
-    typedef std::string value_type;
 
     files_iterator files_it;
     files_iterator files_end;
@@ -68,11 +75,18 @@ public:
 
   class reverse_iterator
   {
+  public:
+    using difference_type    = ssize_t;
+    using value_type         = std::string;
+    using pointer            = value_type*;
+    using reference          = value_type&;
+    using iterator_category  = std::forward_iterator_tag;
+
   private:
     friend class Database;
+
     typedef std::vector <Datafile>::iterator files_iterator;
     typedef std::vector <std::string>::const_iterator lines_iterator;
-    typedef std::string value_type;
 
     files_iterator files_it;
     files_iterator files_end;
