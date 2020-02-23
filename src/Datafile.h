@@ -37,6 +37,13 @@ class Datafile
 {
 public:
   Datafile () = default;
+  explicit Datafile (const std::string&);
+  ~Datafile () = default;
+  Datafile (const Datafile&) = delete;
+  Datafile (Datafile&&) = default;
+  Datafile& operator= (const Datafile&) = delete;
+  Datafile& operator= (Datafile&&) = default;
+
   void initialize (const std::string&);
   std::string name () const;
 
