@@ -71,21 +71,6 @@ std::string Datafile::name () const
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-// Identifies the last incluѕion (^i) lines
-std::string Datafile::lastLine ()
-{
-  if (! _lines_loaded)
-    load_lines ();
-
-  std::vector <std::string>::reverse_iterator ri;
-  for (ri = _lines.rbegin (); ri != _lines.rend (); ri++)
-    if (ri->operator[] (0) == 'i')
-      return *ri;
-
-  return "";
-}
-
-////////////////////////////////////////////////////////////////////////////////
 const std::vector <std::string>& Datafile::allLines ()
 {
   if (! _lines_loaded)

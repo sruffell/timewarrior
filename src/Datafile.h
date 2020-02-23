@@ -47,7 +47,6 @@ public:
   void initialize (const std::string&);
   std::string name () const;
 
-  std::string lastLine ();
   const std::vector <std::string>& allLines ();
 
   void addInterval (const Interval&);
