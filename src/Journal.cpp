@@ -83,7 +83,7 @@ void Journal::startTransaction ()
       throw "Subsequent call to start transaction";
     }
 
-    _currentTransaction = std::make_shared <Transaction> ();
+    _currentTransaction = std::unique_ptr <Transaction> (new Transaction);
   }
 }
 

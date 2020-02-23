@@ -54,7 +54,7 @@ private:
   void recordUndoAction (const std::string &, const std::string &, const std::string &);
 
   std::string _location {"~/.timewarrior/data/undo.data"};
-  std::shared_ptr <Transaction> _currentTransaction = nullptr;
+  std::unique_ptr <Transaction> _currentTransaction = nullptr;
   int _size {0};
 };
 
