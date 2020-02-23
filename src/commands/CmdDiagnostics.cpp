@@ -29,13 +29,14 @@
 #include <timew.h>
 #include <iostream>
 #include <shared.h>
+#include <FS.h>
 
 #ifdef HAVE_COMMIT
 #include <commit.h>
 #endif
 
 ////////////////////////////////////////////////////////////////////////////////
-std::string describeFile (File& file)
+std::string describeFile (const File& file)
 {
   std::stringstream out;
   out << file._data
