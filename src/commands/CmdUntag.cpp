@@ -52,27 +52,7 @@ int CmdUntag (
   journal.startTransaction ();
 
   flattenDatabase (database, rules);
-  std::vector <Interval> intervals;
-
-  if (ids.empty ())
-  {
-    auto latest = getLatestInterval (database);
-
-    if (latest.empty ())
-    {
-      throw std::string ("There is no active time tracking.");
-    }
-    else if (!latest.is_open ())
-    {
-      throw std::string ("At least one ID must be specified. See 'timew help untag'.");
-    }
-
-    intervals.push_back (latest);
-  }
-  else
-  {
-    intervals = getIntervalsByIds (database, rules, ids);
-  }
+  auto intervals = getIntervalsByIdsOrCurrentOpen (database, rules, ids);
 
   // Remove tags from intervals.
   for (const auto& interval : intervals)

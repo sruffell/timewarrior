@@ -236,6 +236,39 @@ std::vector <Interval> getIntervalsByIds (
 }
 
 ////////////////////////////////////////////////////////////////////////////////
+// Some commands will implicitly operate on the current open interval if ids
+// are not specified (annotate, tag, untag, etc..)
+std::vector <Interval> getIntervalsByIdsOrCurrentOpen (
+  Database& database,
+  const Rules& rules,
+  const std::set <int>& ids)
+{
+  std::vector <Interval> intervals;
+
+  if (ids.empty ())
+  {
+    auto latest = getLatestInterval (database);
+
+    if (latest.empty ())
+    {
+      throw std::string ("There is no active time tracking.");
+    }
+    else if (!latest.is_open ())
+    {
+      throw std::string ("At least one ID must be specified. See 'timew help untag'.");
+    }
+
+    intervals.push_back (latest);
+  }
+  else
+  {
+    intervals = getIntervalsByIds (database, rules, ids);
+  }
+
+  return intervals;
+}
+
+////////////////////////////////////////////////////////////////////////////////
 std::vector <Interval> subset (
   const Interval& filter,
   const std::deque <Interval>& intervals)
