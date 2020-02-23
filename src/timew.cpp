@@ -42,6 +42,8 @@
 ////////////////////////////////////////////////////////////////////////////////
 int main (int argc, const char** argv)
 {
+  std::ios_base::sync_with_stdio (false);
+
   Timer run_time;
 
   // Lightweight version checking that doesn't require initialization or I/O.
