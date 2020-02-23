@@ -30,7 +30,7 @@
 #include <format.h>
 #include <IntervalFactory.h>
 
-static void undoIntervalAction(UndoAction& action, Database& database)
+static void undoIntervalAction(const UndoAction& action, Database& database)
 {
   Interval before = IntervalFactory::fromJson (action.getBefore ());
   Interval after = IntervalFactory::fromJson (action.getAfter ());
@@ -38,7 +38,7 @@ static void undoIntervalAction(UndoAction& action, Database& database)
   database.modifyInterval (after, before, false);
 }
 
-static void undoConfigAction (UndoAction& action, Rules &rules, Journal& journal)
+static void undoConfigAction (const UndoAction& action, Rules &rules, Journal& journal)
 {
   const std::string& before = action.getBefore ();
 
@@ -66,7 +66,7 @@ int CmdUndo (Rules& rules, Database& database, Journal& journal)
 
   Transaction transaction = journal.popLastTransaction ();
 
-  std::vector <UndoAction> actions = transaction.getActions ();
+  const std::vector <UndoAction>& actions = transaction.getActions ();
 
   if (actions.empty ())
   {

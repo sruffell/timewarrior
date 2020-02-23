@@ -38,17 +38,17 @@ std::string UndoAction::toString () const
          "  after: " + _after + "\n";
 }
 
-std::string UndoAction::getType () const
+const std::string& UndoAction::getType () const
 {
   return _type;
 }
 
-std::string UndoAction::getBefore () const
+const std::string& UndoAction::getBefore () const
 {
   return _before;
 }
 
-std::string UndoAction::getAfter () const
+const std::string& UndoAction::getAfter () const
 {
   return _after;
 }

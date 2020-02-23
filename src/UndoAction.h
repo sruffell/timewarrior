@@ -34,9 +34,9 @@ class UndoAction
 public:
   UndoAction(std::string, std::string, std::string);
 
-  std::string getType() const;
-  std::string getBefore() const;
-  std::string getAfter() const;
+  const std::string& getType() const;
+  const std::string& getBefore() const;
+  const std::string& getAfter() const;
 
   std::string toString () const;
 

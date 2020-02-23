@@ -37,7 +37,7 @@ public:
 
   std::string toString() const;
 
-  std::vector<UndoAction> getActions () const;
+  const std::vector<UndoAction>& getActions () const;
 
 private:
   std::vector<UndoAction> _actions {};
