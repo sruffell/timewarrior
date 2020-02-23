@@ -42,7 +42,7 @@ int CmdExtensions (
 
   for (auto& ext : extensions.all ())
   {
-    File program (ext);
+    Path program (ext);
 
     // Show program name.
     auto row = t.addRow ();
