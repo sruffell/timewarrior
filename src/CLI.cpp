@@ -24,6 +24,7 @@
 //
 ////////////////////////////////////////////////////////////////////////////////
 
+#include <cassert>
 #include <cmake.h>
 #include <CLI.h>
 #include <Color.h>
@@ -46,29 +47,21 @@ A2::A2 (const std::string& raw, Lexer::Type lextype)
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-bool A2::hasTag (const std::string& tag) const
+bool A2::hasTag (Tag tag) const
 {
-  return std::find (_tags.begin (), _tags.end (), tag) != _tags.end ();
+  return (_tags & (1 << tag)) > 0;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-void A2::tag (const std::string& tag)
+void A2::tag (Tag tag)
 {
-  if (! hasTag (tag))
-    _tags.push_back (tag);
+  _tags |= (1 << tag);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-void A2::unTag (const std::string& tag)
+void A2::unTag (Tag tag)
 {
-  for (auto i = _tags.begin (); i != _tags.end (); ++i)
-  {
-    if (*i == tag)
-    {
-      _tags.erase (i);
-      break;
-    }
-  }
+  _tags &= ~(1 << tag);
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -87,24 +80,63 @@ void A2::attribute (const std::string& name, int value)
 
 ////////////////////////////////////////////////////////////////////////////////
 // Accessor for attributes.
-std::string A2::attribute (const std::string& name) const
+const std::string& A2::attribute (const std::string& name) const
 {
+  static std::string EMPTY;
   // Prevent autovivification.
   auto i = _attributes.find (name);
   if (i != _attributes.end ())
+  {
     return i->second;
+  }
 
-  return "";
+  return EMPTY;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-std::string A2::getToken () const
+const std::string& A2::getToken () const
 {
   auto i = _attributes.find ("canonical");
   if (i == _attributes.end ())
     i = _attributes.find ("raw");
 
+  assert (i != _attributes.end ());
   return i->second;
+}
+
+const char *toString (A2::Tag tag)
+{
+  switch (tag)
+  {
+  case A2::Tag::BINARY:
+    return "BINARY";
+  case A2::Tag::CMD:
+    return "CMD";
+  case A2::Tag::EXT:
+    return "EXT";
+  case A2::Tag::HINT:
+    return "HINT";
+  case A2::Tag::FILTER:
+    return "FILTER";
+  case A2::Tag::CONFIG:
+    return "CONFIG";
+  case A2::Tag::ID:
+    return "ID";
+
+  case A2::Tag::ORIGINAL:
+    return "ORIGINAL";
+  case A2::Tag::QUOTED:
+    return "QUOTED";
+  case A2::Tag::UNKNOWN:
+    return "UNKNOWN";
+  case A2::Tag::KEYWORD:
+    return "KEYWORD";
+  case A2::Tag::DOM:
+    return "DOM";
+  case A2::Tag::TAG:
+    return "TAG";
+  }
+  return "";
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -119,17 +151,14 @@ std::string A2::dump () const
 
   // Dump tags.
   std::string tags;
-  for (const auto& tag : _tags)
-  {
-         if (tag == "BINARY")        tags += "\033[1;37;44m"             + tag + "\033[0m ";
-    else if (tag == "CMD")           tags += "\033[1;37;46m"             + tag + "\033[0m ";
-    else if (tag == "EXT")           tags += "\033[1;37;42m"             + tag + "\033[0m ";
-    else if (tag == "HINT")          tags += "\033[1;37;43m"             + tag + "\033[0m ";
-    else if (tag == "FILTER")        tags += "\033[1;37;45m"             + tag + "\033[0m ";
-    else if (tag == "CONFIG")        tags += "\033[1;37;101m"            + tag + "\033[0m ";
-    else if (tag == "ID")            tags += "\033[38;5;7m\033[48;5;34m" + tag + "\033[0m ";
-    else                             tags += "\033[32m"                  + tag + "\033[0m ";
-  }
+  if (hasTag (BINARY))        tags += "\033[1;37;44m"             "BINARY"  "\033[0m ";
+  if (hasTag (CMD))           tags += "\033[1;37;46m"             "CMD"     "\033[0m ";
+  if (hasTag (EXT))           tags += "\033[1;37;42m"             "EXT"     "\033[0m ";
+  if (hasTag (HINT))          tags += "\033[1;37;43m"             "HINT"    "\033[0m ";
+  if (hasTag (FILTER))        tags += "\033[1;37;45m"             "FILTER"  "\033[0m ";
+  if (hasTag (CONFIG))        tags += "\033[1;37;101m"            "CONFIG"  "\033[0m ";
+  if (hasTag (ID))            tags += "\033[38;5;7m\033[48;5;34m" "ID"      "\033[0m ";
+//    else                             tags += "\033[32m"                  + tag + "\033[0m ";
 
   return output + " " + atts + tags;
 }
@@ -164,7 +193,7 @@ void CLI::add (const std::string& argument)
   }
 
   A2 arg (Lexer::trim (clean), Lexer::Type::word);
-  arg.tag ("ORIGINAL");
+  arg.tag (A2::Tag::ORIGINAL);
   _original_args.push_back (arg);
 
   // Adding a new argument invalidates prior analysis.
@@ -185,7 +214,7 @@ void CLI::handleArg0 ()
   // need special handling.
   auto raw = _original_args[0].attribute ("raw");
   A2 a (raw, Lexer::Type::word);
-  a.tag ("BINARY");
+  a.tag (A2::Tag::BINARY);
 
   std::string basename = "timew";
   auto slash = raw.rfind ('/');
@@ -221,10 +250,10 @@ void CLI::lexArguments ()
     {
       A2 a (Lexer::dequote (_original_args[i].attribute ("raw")), type);
       if (quoted)
-        a.tag ("QUOTED");
+        a.tag (A2::Tag::QUOTED);
 
-      if (_original_args[i].hasTag ("ORIGINAL"))
-        a.tag ("ORIGINAL");
+      if (_original_args[i].hasTag (A2::Tag::ORIGINAL))
+        a.tag (A2::Tag::ORIGINAL);
 
       _args.push_back (a);
     }
@@ -239,10 +268,10 @@ void CLI::lexArguments ()
       {
         A2 unknown (Lexer::dequote (word), Lexer::Type::word);
         if (Lexer::wasQuoted (_original_args[i].attribute ("raw")))
-          unknown.tag ("QUOTED");
+          unknown.tag (A2::Tag::QUOTED);
 
-        if (_original_args[i].hasTag ("ORIGINAL"))
-          unknown.tag ("ORIGINAL");
+        if (_original_args[i].hasTag (A2::Tag::ORIGINAL))
+          unknown.tag (A2::Tag::ORIGINAL);
 
         _args.push_back (unknown);
       }
@@ -251,13 +280,13 @@ void CLI::lexArguments ()
       else
       {
         A2 unknown (Lexer::dequote (_original_args[i].attribute ("raw")), Lexer::Type::word);
-        unknown.tag ("UNKNOWN");
+        unknown.tag (A2::Tag::UNKNOWN);
 
         if (Lexer::wasQuoted (_original_args[i].attribute ("raw")))
-          unknown.tag ("QUOTED");
+          unknown.tag (A2::Tag::QUOTED);
 
-        if (_original_args[i].hasTag ("ORIGINAL"))
-          unknown.tag ("ORIGINAL");
+        if (_original_args[i].hasTag (A2::Tag::ORIGINAL))
+          unknown.tag (A2::Tag::ORIGINAL);
 
         _args.push_back (unknown);
       }
@@ -285,10 +314,10 @@ std::vector <std::string> CLI::getWords () const
 {
   std::vector <std::string> words;
   for (const auto& a : _args)
-    if (! a.hasTag ("BINARY") &&
-        ! a.hasTag ("CMD")    &&
-        ! a.hasTag ("CONFIG") &&
-        ! a.hasTag ("HINT"))
+    if (! a.hasTag (A2::Tag::BINARY) &&
+        ! a.hasTag (A2::Tag::CMD)    &&
+        ! a.hasTag (A2::Tag::CONFIG) &&
+        ! a.hasTag (A2::Tag::HINT))
       words.push_back (a.attribute ("raw"));
 
   return words;
@@ -340,11 +369,11 @@ std::string CLI::getBinary () const
 std::string CLI::getCommand () const
 {
   for (const auto& a : _args)
-    if (a.hasTag ("CMD"))
+    if (a.hasTag (A2::Tag::CMD))
       return a.attribute ("canonical");
 
   for (const auto& a : _args)
-    if (a.hasTag ("EXT"))
+    if (a.hasTag (A2::Tag::EXT))
       return a.attribute ("canonical");
 
   return "";
@@ -395,7 +424,7 @@ void CLI::identifyOverrides ()
         sep = raw.find (':', 3);
       if (sep != std::string::npos)
       {
-        a.tag ("CONFIG");
+        a.tag (A2::Tag::CONFIG);
         a.attribute ("name",  raw.substr (3, sep - 3));
         a.attribute ("value", raw.substr (sep + 1));
       }
@@ -420,7 +449,7 @@ void CLI::identifyIds ()
         if (digits <= 0)
           throw format ("'@{1}' is not a valid ID.", digits);
 
-        a.tag ("ID");
+        a.tag (A2::Tag::ID);
         a.attribute ("value", digits);
       }
     }
@@ -444,7 +473,7 @@ void CLI::canonicalizeNames ()
          canonicalize (canonical, "command", raw)))
     {
       a.attribute ("canonical", canonical);
-      a.tag ("CMD");
+      a.tag (A2::Tag::CMD);
       alreadyFoundCmd = true;
     }
 
@@ -453,14 +482,14 @@ void CLI::canonicalizeNames ()
     else if (alreadyFoundCmd && (raw == "--help" || raw == "-h"))
     {
       for (auto& b : _args) {
-        if (b.hasTag("CMD"))
+        if (b.hasTag (A2::Tag::CMD))
         {
-          b.unTag("CMD");
+          b.unTag (A2::Tag::CMD);
           break;
         }
       }
 
-      a.tag ("CMD");
+      a.tag (A2::Tag::CMD);
       a.attribute("canonical", canonical);
     }
 
@@ -469,7 +498,7 @@ void CLI::canonicalizeNames ()
              canonicalize (canonical, "hint", raw))
     {
       a.attribute ("canonical", canonical);
-      a.tag ("HINT");
+      a.tag (A2::Tag::HINT);
     }
 
     // Extensions.
@@ -477,7 +506,7 @@ void CLI::canonicalizeNames ()
              canonicalize (canonical, "extension", raw))
     {
       a.attribute ("canonical", canonical);
-      a.tag ("EXT");
+      a.tag (A2::Tag::EXT);
       alreadyFoundCmd = true;
     }
   }
@@ -489,24 +518,24 @@ void CLI::identifyFilter ()
 {
   for (auto& a : _args)
   {
-    if (a.hasTag ("CMD")    ||
-        a.hasTag ("EXT")    ||
-        a.hasTag ("CONFIG") ||
-        a.hasTag ("BINARY"))
+    if (a.hasTag (A2::Tag::CMD)    ||
+        a.hasTag (A2::Tag::EXT)    ||
+        a.hasTag (A2::Tag::CONFIG) ||
+        a.hasTag (A2::Tag::BINARY))
       continue;
 
     auto raw = a.attribute ("raw");
 
-    if (a.hasTag ("HINT"))
-      a.tag ("FILTER");
+    if (a.hasTag (A2::Tag::HINT))
+      a.tag (A2::Tag::FILTER);
 
-    else if (a.hasTag ("ID"))
-      a.tag ("FILTER");
+    else if (a.hasTag (A2::Tag::ID))
+      a.tag (A2::Tag::FILTER);
 
     else if (a._lextype == Lexer::Type::date ||
              a._lextype == Lexer::Type::duration)
     {
-      a.tag ("FILTER");
+      a.tag (A2::Tag::FILTER);
     }
 
     else if (raw == "from"   ||
@@ -519,18 +548,18 @@ void CLI::identifyFilter ()
              raw == "after"  ||
              raw == "ago")
     {
-      a.tag ("FILTER");
-      a.tag ("KEYWORD");
+      a.tag (A2::Tag::FILTER);
+      a.tag (A2::Tag::KEYWORD);
     }
 
     else if (raw.rfind("dom.",0) == 0)
     {
-      a.tag ("DOM");
+      a.tag (A2::Tag::DOM);
     }
     else
     {
-      a.tag ("FILTER");
-      a.tag ("TAG");
+      a.tag (A2::Tag::FILTER);
+      a.tag (A2::Tag::TAG);
     }
   }
 }
@@ -557,7 +586,7 @@ std::set<int> CLI::getIds() const
 
   for (auto& arg : _args)
   {
-    if (arg.hasTag ("ID"))
+    if (arg.hasTag (A2::Tag::ID))
       ids.insert (strtol (arg.attribute ("value").c_str (), NULL, 10));
   }
 
@@ -571,7 +600,7 @@ std::vector<std::string> CLI::getTags () const
 
   for (auto& arg : _args)
   {
-    if (arg.hasTag ("TAG"))
+    if (arg.hasTag (A2::Tag::TAG))
       tags.push_back (arg.attribute ("raw"));
   }
 
@@ -585,7 +614,7 @@ std::string CLI::getAnnotation () const
 
   for (auto& arg : _args)
   {
-    if (arg.hasTag ("TAG"))
+    if (arg.hasTag (A2::Tag::TAG))
     {
       annotation = (arg.attribute ("raw"));
     }
@@ -601,7 +630,7 @@ Duration CLI::getDuration () const
   std::string delta;
   for (auto& arg : _args)
   {
-    if (arg.hasTag ("FILTER") &&
+    if (arg.hasTag (A2::Tag::FILTER) &&
         arg._lextype == Lexer::Type::duration)
     {
       delta = arg.attribute ("raw");
@@ -619,7 +648,7 @@ std::vector <std::string> CLI::getDomReferences () const
 
   for (auto &arg : _args)
   {
-    if (arg.hasTag ("DOM"))
+    if (arg.hasTag (A2::Tag::DOM))
     {
       references.emplace_back (arg.attribute ("raw"));
     }
@@ -650,17 +679,17 @@ Interval CLI::getFilter (const Range& default_range) const
 
   for (auto& arg : _args)
   {
-    if (arg.hasTag ("BINARY") ||
-        arg.hasTag ("CMD")    ||
-        arg.hasTag ("EXT"))
+    if (arg.hasTag (A2::Tag::BINARY) ||
+        arg.hasTag (A2::Tag::CMD)    ||
+        arg.hasTag (A2::Tag::EXT))
       continue;
 
-    if (arg.hasTag ("FILTER"))
+    if (arg.hasTag (A2::Tag::FILTER))
     {
       auto canonical = arg.attribute ("canonical");
       auto raw       = arg.attribute ("raw");
 
-      if (arg.hasTag ("HINT"))
+      if (arg.hasTag (A2::Tag::HINT))
       {
         Range range;
         if (expandIntervalHint (canonical, range))
@@ -698,14 +727,14 @@ Interval CLI::getFilter (const Range& default_range) const
 
         args.push_back ("<duration>");
       }
-      else if (arg.hasTag ("KEYWORD"))
+      else if (arg.hasTag (A2::Tag::KEYWORD))
       {
         // Note: that KEYWORDS are not entities (why not?) and there is a list
         //       in CLI.cpp of them that must be maintained and synced with this
         //       function.
         args.push_back (raw);
       }
-      else if (arg.hasTag ("ID"))
+      else if (arg.hasTag (A2::Tag::ID))
       {
         // Not part of a filter.
       }

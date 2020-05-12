@@ -194,7 +194,7 @@ std::pair<int, int> Chart::determineHourRange (
 
     for (auto &track : tracked)
     {
-      Interval test {track};
+      Range test {track};
 
       if (test.is_open ())
       {
@@ -203,7 +203,7 @@ std::pair<int, int> Chart::determineHourRange (
 
       if (day_range.overlaps (test))
       {
-        Interval clipped = clip (test, day_range);
+        Range clipped = clip (test, day_range);
 
         if (clipped.start.hour () < first_hour)
         {
@@ -438,7 +438,7 @@ void Chart::renderInterval (
 
   // If the track is open and day is today, then closed the track now, otherwise
   // it will be rendered until midnight.
-  Interval clipped = clip (track, day_range);
+  Range clipped = clip (track, day_range);
   if (track.is_open ())
   {
     if (day_range.start.sameDay (reference_datetime))
@@ -575,7 +575,7 @@ std::string Chart::renderSummary (
     {
       if (filter.overlaps (interval))
       {
-        Interval clipped = clip (interval, filter);
+        Range clipped = clip (interval, filter);
         if (interval.is_open ())
         {
           clipped.end = reference_datetime;

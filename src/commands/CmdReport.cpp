@@ -83,7 +83,7 @@ int CmdReport (
 {
   std::string script;
   for (auto& arg : cli._args)
-    if (arg.hasTag ("EXT"))
+    if (arg.hasTag (A2::Tag::EXT))
       script = findExtension (extensions, arg.attribute ("canonical"));
 
   if (script.empty ())

@@ -39,19 +39,24 @@
 class A2
 {
 public:
+  enum Tag {
+    BINARY = 0, CMD, EXT, HINT, FILTER, CONFIG, ID, ORIGINAL, QUOTED, UNKNOWN,
+    KEYWORD, DOM, TAG,
+  };
+
   A2 (const std::string&, Lexer::Type);
-  bool hasTag (const std::string&) const;
-  void tag (const std::string&);
-  void unTag (const std::string&);
+  bool hasTag (Tag) const;
+  void tag (Tag);
+  void unTag (Tag);
   void attribute (const std::string&, const std::string&);
   void attribute (const std::string&, int);
-  std::string attribute (const std::string&) const;
-  std::string getToken () const;
+  const std::string& attribute (const std::string&) const;
+  const std::string& getToken () const;
   std::string dump () const;
 
 public:
   Lexer::Type                         _lextype     {Lexer::Type::word};
-  std::vector <std::string>           _tags        {};
+  uint32_t                            _tags        {0};
   std::map <std::string, std::string> _attributes  {};
 };
 

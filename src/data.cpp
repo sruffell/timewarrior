@@ -495,13 +495,13 @@ bool matchesFilter (const Interval& interval, const Interval& filter)
 
 ////////////////////////////////////////////////////////////////////////////////
 // Take an interval and clip it to the range
-Interval clip (const Interval& interval, const Range& range)
+Range clip (const Range& interval, const Range& range)
 {
   if (! range.is_started () ||
       range.total () == 0)
     return interval;
 
-  Interval clipped {interval};
+  Range clipped {interval};
   if (clipped.start.toEpoch () &&
       clipped.start < range.start)
     clipped.start = range.start;

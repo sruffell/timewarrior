@@ -35,7 +35,11 @@ class Interval : public Range
 {
 public:
   Interval () = default;
+  Interval (const Interval&) = default;
+  Interval (Interval&&) = default;
   Interval (const Datetime& start, const Datetime& end) : Range (start, end) {}
+  Interval& operator=(const Interval&) = default;
+  Interval& operator=(Interval&&) = default;
   bool operator== (const Interval&) const;
   bool operator!= (const Interval&) const;
 

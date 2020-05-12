@@ -61,7 +61,7 @@ int CmdMove (
   std::string new_start;
   for (auto& arg : cli._args)
   {
-    if (arg.hasTag ("FILTER") && arg._lextype == Lexer::Type::date)
+    if (arg.hasTag (A2::Tag::FILTER) && arg._lextype == Lexer::Type::date)
     {
       new_start = arg.attribute ("raw");
     }
