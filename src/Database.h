@@ -129,7 +129,6 @@ public:
 
 private:
   unsigned int getDatafile (int, int);
-  std::vector <Range> segmentRange (const Range&);
   void initializeDatafiles ();
   void initializeTagDatabase ();
 
