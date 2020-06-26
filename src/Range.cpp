@@ -369,9 +369,9 @@ std::string Range::dump () const
 {
   std::stringstream out;
   out << "Range "
-      << (start.toEpoch () ? start.toISOLocalExtended () : "n/a")
+      << (is_started () ? start.toISOLocalExtended () : "n/a")
       << " - "
-      << (end.toEpoch () ? end.toISOLocalExtended () : "n/a");
+      << (is_ended () ? end.toISOLocalExtended () : "n/a");
 
   return out.str ();
 }

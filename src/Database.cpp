@@ -416,12 +416,7 @@ std::vector <Range> Database::segmentRange (const Range& range)
   auto start_y = range.start.year ();
   auto start_m = range.start.month ();
 
-  auto end = range.end;
-  if (end.toEpoch () == 0)
-  {
-    end = Datetime ();
-  }
-
+  auto end = range.is_ended () ? range.end : Datetime ();
   auto end_y = end.year ();
   auto end_m = end.month ();
 

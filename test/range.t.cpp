@@ -248,8 +248,8 @@ int main (int, char**)
   t.notok (left.overlaps (right), "Range: left (11am - 12pm) does not overlaps with right (12pm - 1pm)");
 
   auto intersection = left.intersect (right);
-  t.ok (intersection.start.toEpoch () == 0, "Range: adjacent ranges do not intersect");
-  t.ok (intersection.end.toEpoch ()   == 0, "Range: adjacent ranges do not intersect");
+  t.ok (! intersection.is_started (), "Range: adjacent ranges do not intersect");
+  t.ok (! intersection.is_ended (), "Range: adjacent ranges do not intersect");
 
   // Range length.
   t.ok (Range (Datetime (2016, 1, 1), Datetime (2016, 1, 3)).total () == (2 * 86400),

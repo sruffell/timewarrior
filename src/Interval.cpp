@@ -56,8 +56,8 @@ bool Interval::operator!= (const Interval& other) const
 ////////////////////////////////////////////////////////////////////////////////
 bool Interval::empty () const
 {
-  return start.toEpoch () == 0 &&
-         end.toEpoch ()   == 0 &&
+  return !is_started () &&
+         !is_ended () &&
          _tags.empty () &&
          annotation.empty ();
 }
@@ -93,11 +93,15 @@ std::string Interval::serialize () const
   std::stringstream out;
   out << "inc";
 
-  if (start.toEpoch ())
+  if (is_started ())
+  {
     out << " " << start.toISO ();
+  }
 
-  if (end.toEpoch ())
+  if (is_ended ())
+  {
     out << " - " << end.toISO ();
+  }
 
   if (! _tags.empty ())
   {
@@ -171,11 +175,15 @@ std::string Interval::dump () const
   if (id)
     out << " @" << id;
 
-  if (start.toEpoch ())
+  if (is_started ())
+  {
     out << " " << start.toISOLocalExtended ();
+  }
 
-  if (end.toEpoch ())
+  if (is_ended ())
+  {
     out << " - " << end.toISOLocalExtended ();
+  }
 
   if (! _tags.empty ())
   {

@@ -410,9 +410,9 @@ bool matchesRange (const Interval& interval, const Range& filter)
 // An interval matches a filter interval if the start/end overlaps, and all
 // filter interval tags are found in the interval.
 //
-// [1] interval.end.toEpoch () == 0
+// [1] ! interval.is_ended ()
 // [2] interval.end > filter.start
-// [3] filter.end.toEpoch () == 0
+// [3] ! filter.is_ended ()
 // [4] interval.start < filter.end
 //
 // Match:   (1 || 2) && (3 || 4)
@@ -464,18 +464,21 @@ bool matchesFilter (const Interval& interval, const Interval& filter)
 // Take an interval and clip it to the range
 Interval clip (const Interval& interval, const Range& range)
 {
-  if (! range.is_started () ||
-      range.total () == 0)
+  if (! range.is_started () || range.total () == 0)
+  {
     return interval;
+  }
 
   Interval clipped {interval};
-  if (clipped.start.toEpoch () &&
-      clipped.start < range.start)
+  if (clipped.is_started () && clipped.start < range.start)
+  {
     clipped.start = range.start;
+  }
 
-  if (clipped.end.toEpoch () &&
-      clipped.end > range.end)
+  if (clipped.is_ended () && clipped.end > range.end)
+  {
     clipped.end = range.end;
+  }
 
   return clipped;
 }
@@ -499,7 +502,7 @@ std::vector <Interval> getTracked (
     {
       intervals.push_front (std::move (interval));
     }
-    else if (interval.start.toEpoch () >= filter.start.toEpoch ())
+    else if (interval.start >= filter.start)
     {
       ++id_skip;
     }
