@@ -358,6 +358,11 @@ void Database::modifyInterval (const Interval& from, const Interval& to, bool ve
 ////////////////////////////////////////////////////////////////////////////////
 std::string Database::dump () const
 {
+  if (_files.empty ())
+  {
+    initializeDatafiles ();
+  }
+
   std::stringstream out;
   out << "Database\n";
   for (auto& df : _files)
@@ -369,7 +374,7 @@ std::string Database::dump () const
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-unsigned int Database::getDatafile (int year, int month)
+unsigned int Database::getDatafile (int year, int month) const
 {
   std::stringstream file;
   file << _location
@@ -531,7 +536,7 @@ void Database::initializeTagDatabase ()
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-void Database::initializeDatafiles ()
+void Database::initializeDatafiles () const
 {
   // Because the data files have names YYYY-MM.data, sorting them by name also
   // sorts by the intervals within.
