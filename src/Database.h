@@ -102,7 +102,7 @@ public:
   };
 
 public:
-  Database () = default;
+  Database () = delete;
   Database (const std::string&, int);
   Database& operator= (const Database&) = delete;
   Database& operator= (Database&&) = default;
@@ -132,10 +132,10 @@ private:
   void initializeTagDatabase ();
 
 private:
-  std::string               _location {"~/.timewarrior/data"};
+  std::string               _location;
+  Journal                   _journal;
   mutable datafiles_t       _files    {};
   TagInfoDatabase           _tagInfoDatabase {};
-  Journal                   _journal {};
 };
 
 #endif

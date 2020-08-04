@@ -120,10 +120,7 @@ void initializeEntities (CLI& cli)
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-void initializeDatabaseAndRules (
-  const CLI& cli,
-  Database& database,
-  Rules& rules)
+void initializeRules (const CLI& cli, Rules& rules)
 {
   // Rose tint my world, make me safe from my trouble and pain.
   rules.set ("color", isatty (STDOUT_FILENO) ? "on" : "off");
@@ -219,9 +216,6 @@ void initializeDatabaseAndRules (
       debug (format ("Configuration override {1} = {2}", arg.attribute ("name"), arg.attribute ("value")));
     }
   }
-
-  // Initialize the database (no data read), but files are enumerated.
-  database.initialize (data._data, rules.getInteger ("journal.size"));
 }
 
 ////////////////////////////////////////////////////////////////////////////////

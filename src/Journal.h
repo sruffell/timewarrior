@@ -36,12 +36,11 @@
 class Journal
 {
 public:
-  Journal() = default;
-  Journal(const Journal&) = default;
+  Journal () = delete;
+  Journal (const std::string&, int);
+  Journal (const Journal&) = default;
   Journal& operator= (const Journal&) = delete;
   Journal& operator= (Journal&&) = default;
-
-  void initialize(const std::string&, int);
 
   void startTransaction ();
   void endTransaction ();
@@ -54,7 +53,7 @@ public:
 private:
   void recordUndoAction (const std::string &, const std::string &, const std::string &);
 
-  std::string _location {"~/.timewarrior/data/undo.data"};
+  std::string _location {};
   std::shared_ptr <Transaction> _currentTransaction = nullptr;
   int _size {0};
 };

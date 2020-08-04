@@ -274,16 +274,8 @@ Database::reverse_iterator Database::rend ()
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-Database::Database (const std::string& location, int journal_size)
+Database::Database (const std::string& location, int journal_size) : _location (location), _journal (location + "/undo.data", journal_size)
 {
-  initialize (location, journal_size);
-}
-
-////////////////////////////////////////////////////////////////////////////////
-void Database::initialize (const std::string& location, int journal_size)
-{
-  _journal.initialize (location + "/undo.data", journal_size);
-  _location = location;
   initializeDatafiles ();
   initializeTagDatabase ();
 }

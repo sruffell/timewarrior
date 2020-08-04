@@ -81,9 +81,11 @@ int main (int argc, const char** argv)
     cli.analyze ();
 
     // Prepare the database, but do not read data.
-    Database database;
     Rules rules;
-    initializeDatabaseAndRules (cli, database, rules);
+    initializeRules (cli, rules);
+ 
+    // Initialize the database (no data read), but files are enumerated.
+    Database database {rules.get ("temp.db") + "/data", rules.getInteger ("journal.size")};
 
     // Load extension script info.
     // Re-analyze command because of the new extension entities.
