@@ -37,8 +37,9 @@ class Journal
 {
 public:
   Journal() = default;
-  Journal(const Journal&) = delete;
+  Journal(const Journal&) = default;
   Journal& operator= (const Journal&) = delete;
+  Journal& operator= (Journal&&) = default;
 
   void initialize(const std::string&, int);
 

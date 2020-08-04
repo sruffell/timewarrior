@@ -103,6 +103,9 @@ public:
 
 public:
   Database () = default;
+  Database (const std::string&, int);
+  Database& operator= (const Database&) = delete;
+  Database& operator= (Database&&) = default;
   void initialize (const std::string&, int);
   void commit ();
   Journal& journal ();
