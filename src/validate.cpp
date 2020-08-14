@@ -218,6 +218,12 @@ void validate (
   }
 
   autoAdjust (findHint (cli, ":adjust"), rules, database, interval);
+
+  // Check if the interval is invalid after possible adjustment in autoAdjust
+  if (interval.is_open () && interval.start > Datetime ())
+  {
+    throw std::string ("Time tracking cannot be set in the future.");
+  }
 }
 
 ////////////////////////////////////////////////////////////////////////////////
