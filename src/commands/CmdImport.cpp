@@ -1,6 +1,6 @@
 ////////////////////////////////////////////////////////////////////////////////
 //
-// Copyright 2018 - 2019, Thomas Lauf, Paul Beckingham, Federico Hernandez.
+// Copyright 2020, Thomas Lauf, Shaun Ruffell
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -24,23 +24,51 @@
 //
 ////////////////////////////////////////////////////////////////////////////////
 
-#ifndef INCLUDED_INTERVALFACTORY
-#define INCLUDED_INTERVALFACTORY
+#include <iostream>
 
-#include <Interval.h>
-#include <string>
+#include <commands.h>
+#include <timew.h>
+#include <JSON.h>
+#include <IntervalFactory.h>
 
-namespace json
+std::string read_input ()
 {
-class object;
-};
+  std::string content;
+  std::string line;
 
-class IntervalFactory
+  while (std::getline (std::cin, line))
+  {
+    content += line;
+  }
+
+  return content;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+int CmdImport (const CLI& cli, Rules& rules, Database& database)
 {
-public:
-  static Interval fromSerialization (const std::string& line);
-  static Interval fromJson (json::object& json);
-  static Interval fromJson (const std::string& jsonString);
-};
+  Journal& journal = database.journal ();
+  const bool verbose = rules.getBoolean ("verbose");
 
-#endif
+  std::unique_ptr <json::array> json (dynamic_cast <json::array *>(json::parse (read_input ())));
+
+  journal.startTransaction ();
+  for (const auto& value : json->_data)
+  {
+    json::object* object = dynamic_cast <json::object *> (value);
+
+    Interval interval = IntervalFactory::fromJson (*object);
+    validate (cli, rules, database, interval);
+    database.addInterval (interval, verbose);
+
+    if (verbose)
+    {
+      std::cout << intervalSummarize (database, rules, interval);
+    }
+  }
+  journal.endTransaction ();
+
+  return 0;
+}
+
+////////////////////////////////////////////////////////////////////////////////

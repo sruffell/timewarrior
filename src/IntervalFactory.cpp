@@ -121,38 +121,45 @@ Interval IntervalFactory::fromSerialization (const std::string& line)
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-Interval IntervalFactory::fromJson (const std::string& jsonString)
+Interval IntervalFactory::fromJson (json::object& json)
 {
   Interval interval = Interval ();
 
+  json::array* tags = (json::array*) json._data["tags"];
+
+  if (tags != nullptr)
+  {
+    for (auto& tag : tags->_data)
+    {
+      auto* value = (json::string*) tag;
+      interval.tag(value->_data);
+    }
+  }
+
+  json::string* annotation = (json::string*) json._data["annotation"];
+  interval.annotation = (annotation != nullptr) ? annotation->_data : "";
+
+  json::string* start = (json::string*) json._data["start"];
+  interval.start = (start != nullptr) ? Datetime(start->_data) : 0;
+  json::string* end = (json::string*) json._data["end"];
+  interval.end = (end != nullptr) ? Datetime(end->_data) : 0;
+
+  json::number* id = (json::number*) json._data["id"];
+  interval.id = (id != nullptr) ? id->_dvalue : 0;
+
+  return interval;
+}
+
+////////////////////////////////////////////////////////////////////////////////
+Interval IntervalFactory::fromJson (const std::string& jsonString)
+{
   if (!jsonString.empty ())
   {
     std::unique_ptr <json::object> json (dynamic_cast <json::object *> (json::parse (jsonString)));
-
-    json::array* tags = (json::array*) json->_data["tags"];
-
-    if (tags != nullptr)
-    {
-      for (auto& tag : tags->_data)
-      {
-        auto* value = (json::string*) tag;
-        interval.tag(value->_data);
-      }
-    }
-
-    json::string* annotation = (json::string*) json->_data["annotation"];
-    interval.annotation = (annotation != nullptr) ? annotation->_data : "";
-
-    json::string* start = (json::string*) json->_data["start"];
-    interval.start = (start != nullptr) ? Datetime(start->_data) : 0;
-    json::string* end = (json::string*) json->_data["end"];
-    interval.end = (end != nullptr) ? Datetime(end->_data) : 0;
-
-    json::number* id = (json::number*) json->_data["id"];
-    interval.id = (id != nullptr) ? id->_dvalue : 0;
+    return IntervalFactory::fromJson (*json);
   }
 
-  return interval;
+  return Interval {};
 }
 
 ////////////////////////////////////////////////////////////////////////////////
