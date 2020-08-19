@@ -47,6 +47,7 @@ int CmdGaps          (const CLI&, Rules&, Database&                             
 int CmdGet           (const CLI&, Rules&, Database&                             );
 int CmdHelpUsage     (                                         const Extensions&);
 int CmdHelp          (const CLI&,                              const Extensions&);
+int CmdImport        (const CLI&, Rules&, Database&                             );
 int CmdJoin          (const CLI&, Rules&, Database&, Journal&                   );
 int CmdLengthen      (const CLI&, Rules&, Database&, Journal&                   );
 int CmdModify        (const CLI&, Rules&, Database&, Journal&                   );

@@ -30,10 +30,16 @@
 #include <Interval.h>
 #include <string>
 
+namespace json
+{
+class object;
+};
+
 class IntervalFactory
 {
 public:
   static Interval fromSerialization (const std::string& line);
+  static Interval fromJson (json::object& json);
   static Interval fromJson (const std::string& jsonString);
 };
 
