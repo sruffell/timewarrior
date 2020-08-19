@@ -465,11 +465,18 @@ void CLI::canonicalizeNames ()
     }
 
     // Hints.
-    else if (exactMatch ("hint", raw) ||
-             canonicalize (canonical, "hint", raw))
+    else if (0 == raw.compare (0, 1, ":"))
     {
-      a.attribute ("canonical", canonical);
-      a.tag ("HINT");
+      if (exactMatch ("hint", raw) ||
+          canonicalize (canonical, "hint", raw))
+      {
+        a.attribute ("canonical", canonical);
+        a.tag ("HINT");
+      }
+      else
+      {
+        throw format ("'{1}' is an invalid hint.", raw);
+      }
     }
 
     // Extensions.
