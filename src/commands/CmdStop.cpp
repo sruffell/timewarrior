@@ -47,6 +47,7 @@ int CmdStop (
   Database& database,
   Journal& journal)
 {
+  const Datetime now {};
   const bool verbose = rules.getBoolean ("verbose");
 
   // Load the most recent interval.
@@ -58,6 +59,10 @@ int CmdStop (
   if (! latest.is_open ())
   {
     throw std::string ("There is no active time tracking.");
+  }
+  else if (latest.start > now)
+  {
+    throw std::string ("Cannot stop a future interval. Please use the delete command.");
   }
 
   // We expect no ids
@@ -84,7 +89,7 @@ int CmdStop (
   }
   else
   {
-    modified.end = Datetime ();
+    modified.end = now;
   }
 
   // Close the interval.
