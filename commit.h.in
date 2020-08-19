@@ -2,3 +2,4 @@
 
 /* git information */
 #define COMMIT "${COMMIT}"
+#define GIT_VERSION "${GIT_VERSION}"
