@@ -51,18 +51,14 @@ int CmdStop (
   const bool verbose = rules.getBoolean ("verbose");
 
   // Load the most recent interval.
-  auto filter = cli.getFilter ();
   auto latest = getLatestInterval (database);
+  auto filter = cli.getFilter ();
   std::set <int> ids = cli.getIds ();
 
   // Verify the interval is open.
   if (! latest.is_open ())
   {
     throw std::string ("There is no active time tracking.");
-  }
-  else if (latest.start > now)
-  {
-    throw std::string ("Cannot stop a future interval. Please use the delete command.");
   }
 
   // We expect no ids
@@ -89,7 +85,7 @@ int CmdStop (
   }
   else
   {
-    modified.end = now;
+    modified.end = (modified.start > now) ? modified.start : now;
   }
 
   // Close the interval.
