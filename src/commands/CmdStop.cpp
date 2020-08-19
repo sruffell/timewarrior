@@ -47,11 +47,12 @@ int CmdStop (
   Database& database,
   Journal& journal)
 {
+  const Datetime now {};
   const bool verbose = rules.getBoolean ("verbose");
 
   // Load the most recent interval.
-  auto filter = cli.getFilter ();
   auto latest = getLatestInterval (database);
+  auto filter = cli.getFilter ();
   std::set <int> ids = cli.getIds ();
 
   // Verify the interval is open.
@@ -84,7 +85,7 @@ int CmdStop (
   }
   else
   {
-    modified.end = Datetime ();
+    modified.end = (modified.start > now) ? modified.start : now;
   }
 
   // Close the interval.
