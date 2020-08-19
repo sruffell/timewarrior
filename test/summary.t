@@ -285,6 +285,16 @@ W\d{1,2} \d{4}-\d{2}-\d{2} .{3}       ?0:00:00 0:00:00 0:00:00 0:00:00
 [ ]+0:00:00
 """)
 
+    def test_with_open_interval_in_future(self):
+        """Summary should show future open intervals"""
+
+        now_utc = datetime.now().utcnow()
+
+        self.t("track FOO {:%Y-%m-%dT%H}:00:00Z - {:%Y-%m-%dT%H}:00:00Z".format(now_utc - timedelta(hours=1), now_utc - timedelta(minutes=30)))
+        self.t("continue @1 {:%Y-%m-%dT%H}:00:00Z".format(now_utc + timedelta(hours=1)))
+
+        code, out, err = self.t("summary yesterday - tomorrow")
+
 
 if __name__ == "__main__":
     from simpletap import TAPTestRunner
