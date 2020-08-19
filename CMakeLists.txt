@@ -16,13 +16,24 @@ if (EXISTS ${CMAKE_SOURCE_DIR}/.git/index)
   execute_process (COMMAND git log -1 --pretty=format:%h
                    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
                    OUTPUT_VARIABLE COMMIT)
+  execute_process (COMMAND git describe --tags --always
+                   WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}
+                   OUTPUT_VARIABLE GIT_VERSION
+		   OUTPUT_STRIP_TRAILING_WHITESPACE)
+
+  # Strip any leading 'v' to make tagged versions match
+  string(REGEX REPLACE "^v([0-9])" "\\1" GIT_VERSION "${GIT_VERSION}")
+
   configure_file ( ${CMAKE_SOURCE_DIR}/commit.h.in
                    ${CMAKE_SOURCE_DIR}/commit.h)
+
+  set (VERSION "${GIT_VERSION}")
   message ("-- Found SHA1 reference: ${COMMIT}")
+else (EXISTS ${CMAKE_SOURCE_DIR}/.git/index)
+  set (VERSION "${PROJECT_VERSION}")
 endif (EXISTS ${CMAKE_SOURCE_DIR}/.git/index)
 
 set (PACKAGE "${PROJECT_NAME}")
-set (VERSION "${PROJECT_VERSION}")
 set (PACKAGE_BUGREPORT "support@gothenburgbitfactory.org")
 set (PACKAGE_NAME "${PACKAGE}")
 set (PACKAGE_TARNAME "${PACKAGE}")
