@@ -1,6 +1,6 @@
 ////////////////////////////////////////////////////////////////////////////////
 //
-// Copyright 2018 - 2020, Thomas Lauf, Paul Beckingham, Federico Hernandez.
+// Copyright 2020, Thomas Lauf, Shaun Ruffell
 //
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files (the "Software"), to deal
@@ -24,39 +24,51 @@
 //
 ////////////////////////////////////////////////////////////////////////////////
 
-#ifndef INCLUDED_JOURNAL
-#define INCLUDED_JOURNAL
+#include <iostream>
 
+#include <commands.h>
+#include <timew.h>
+#include <JSON.h>
+#include <IntervalFactory.h>
 
-#include <vector>
-#include <string>
-#include <memory>
-#include <Transaction.h>
-
-class Journal
+std::string read_input ()
 {
-public:
-  Journal () = delete;
-  Journal (const std::string&, int);
-  Journal (const Journal&) = delete;
-  Journal (Journal&&) = default;
-  Journal& operator= (const Journal&) = delete;
-  Journal& operator= (Journal&&) = default;
+  std::string content;
+  std::string line;
 
-  void startTransaction ();
-  void endTransaction ();
-  void recordConfigAction(const std::string&, const std::string&);
-  void recordIntervalAction(const std::string&, const std::string&);
-  bool enabled () const;
+  while (std::getline (std::cin, line))
+  {
+    content += line;
+  }
 
-  Transaction popLastTransaction();
+  return content;
+}
 
-private:
-  void recordUndoAction (const std::string &, const std::string &, const std::string &);
+////////////////////////////////////////////////////////////////////////////////
+int CmdImport (const CLI& cli, Rules& rules, Database& database)
+{
+  Journal& journal = database.journal ();
+  const bool verbose = rules.getBoolean ("verbose");
 
-  std::string _location {};
-  std::shared_ptr <Transaction> _currentTransaction = nullptr;
-  int _size {0};
-};
+  std::unique_ptr <json::array> json (dynamic_cast <json::array *>(json::parse (read_input ())));
 
-#endif
+  journal.startTransaction ();
+  for (const auto& value : json->_data)
+  {
+    json::object* object = dynamic_cast <json::object *> (value);
+
+    Interval interval = IntervalFactory::fromJson (*object);
+    validate (cli, rules, database, interval);
+    database.addInterval (interval, verbose);
+
+    if (verbose)
+    {
+      std::cout << intervalSummarize (rules, interval);
+    }
+  }
+  journal.endTransaction ();
+
+  return 0;
+}
+
+////////////////////////////////////////////////////////////////////////////////

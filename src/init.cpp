@@ -63,6 +63,7 @@ void initializeEntities (CLI& cli)
   cli.entity ("command", "help");
   cli.entity ("command", "--help");
   cli.entity ("command", "-h");
+  cli.entity ("command", "import");
   cli.entity ("command", "join");
   cli.entity ("command", "lengthen");
   cli.entity ("command", "modify");
@@ -120,12 +121,9 @@ void initializeEntities (CLI& cli)
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-void initializeDataJournalAndRules (
-  const CLI& cli,
-  Database& database,
-  Journal& journal,
-  Rules& rules)
+Rules createRules (const CLI& cli)
 {
+  Rules rules;
   // Rose tint my world, make me safe from my trouble and pain.
   rules.set ("color", isatty (STDOUT_FILENO) ? "on" : "off");
 
@@ -180,12 +178,6 @@ void initializeDataJournalAndRules (
   if (! extensions.exists ())
     extensions.create (0700);
 
-  // Create data subdirectory if necessary.
-  Directory data (dbLocation);
-  data += "data";
-  if (! data.exists ())
-    data.create (0700);
-
   // Load the configuration data.
   Path configFile (dbLocation);
   configFile += "timewarrior.cfg";
@@ -221,40 +213,62 @@ void initializeDataJournalAndRules (
     }
   }
 
-  journal.initialize (data._data + "/undo.data", rules.getInteger ("journal.size"));
-  // Initialize the database (no data read), but files are enumerated.
-  database.initialize (data._data, journal);
+  return rules;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-void initializeExtensions (
-  CLI& cli,
-  const Rules& rules,
-  Extensions& extensions)
+Database createDatabase (Rules& rules)
 {
+  const std::string& dbLocation = rules.get ("temp.db");
+
+  // Create data subdirectory if necessary.
+  Directory data (dbLocation);
+  data += "data";
+  if (! data.exists ())
+  {
+    data.create (0700);
+  }
+
+  return Database {data._data, rules.getInteger ("journal.size")};
+}
+
+////////////////////////////////////////////////////////////////////////////////
+Extensions createExtensions (CLI& cli, const Rules& rules)
+{
+
   Directory extDir (rules.get ("temp.db"));
   extDir += "extensions";
 
-  extensions.initialize (extDir._data);
+  Extensions extensions {extDir._data};
 
   // Add extensions as CLI entities.
-  for (auto& ext : extensions.all ())
-    cli.entity ("extension", File (ext).name ());
+  for (const auto& ext : extensions.all ())
+  {
+    cli.entity ("extension", Path (ext).name ());
+  }
+
+  // Re-analyze command because of the new extension entities.
+  cli.analyze ();
 
   // Extensions have a debug mode.
   if (rules.getBoolean ("debug"))
+  {
     extensions.debug ();
+  }
+
+  return extensions;
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 int dispatchCommand (
   const CLI& cli,
   Database& database,
-  Journal& journal,
   Rules& rules,
   const Extensions& extensions)
 {
   int status {0};
+
+  Journal& journal = database.journal ();
 
   // Debug output.
   if (rules.getBoolean ("debug"))
@@ -284,6 +298,7 @@ int dispatchCommand (
     else if (command == "help" ||
              command == "--help" ||
              command == "-h")          status = CmdHelp          (cli,                           extensions);
+    else if (command == "import")      status = CmdImport        (cli, rules, database                     );
     else if (command == "join")        status = CmdJoin          (cli, rules, database, journal            );
     else if (command == "lengthen")    status = CmdLengthen      (cli, rules, database, journal            );
     else if (command == "modify")      status = CmdModify        (cli, rules, database, journal            );
